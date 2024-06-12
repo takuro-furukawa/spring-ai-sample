@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +31,8 @@ public class OllamaChatController {
     private final ChatClient chatClient;
     private final FileLoadService fileLoadService;
     private final VectorStore vectorStore;
+
+    private final Logger logger = Loggers.getLogger(this.getClass());
 
     public OllamaChatController(ChatModel chatModel, FileLoadService fileLoadService, VectorStore vectorStore) {
         this.chatClient = ChatClient.builder(chatModel).build();
@@ -53,7 +57,9 @@ public class OllamaChatController {
      */
     @PostMapping("/ai/rag/generate")
     public Flux<String> generateRagStream(@RequestBody ChatInput input) {
+        logger.info("start similarity search");
         List<Document> documents = vectorStore.similaritySearch(SearchRequest.query(input.getMessage()).withTopK(3));
+        logger.info("finish similarity search");
         List<String> contentList = documents.stream().map(Document::getContent).toList();
         return chatClient.prompt()
                 .user(
@@ -61,7 +67,7 @@ public class OllamaChatController {
                                 .text(template)
                                 .param("input", input.getMessage())
                                 .param("documents", String.join("¥n", contentList))
-                ).stream().content();
+                ).stream().content().log(logger);
     }
 
     /**

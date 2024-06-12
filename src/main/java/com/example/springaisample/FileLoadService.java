@@ -7,6 +7,8 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
+import reactor.util.Logger;
+import reactor.util.Loggers;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,6 +20,8 @@ public class FileLoadService {
 
     private final EmbeddingModel embeddingModel;
     private final VectorStore vectorStore;
+
+    private final Logger logger = Loggers.getLogger(this.getClass());
 
     public FileLoadService(EmbeddingModel embeddingModel, VectorStore vectorStore) {
         this.embeddingModel = embeddingModel;
@@ -39,7 +43,12 @@ public class FileLoadService {
         List<Document> documents = documentReader.get();
         // split document
         List<Document> splitDocuments = textSplitter.apply(documents);
+
+        logger.info("start vector load");
+
         // embed and save
         vectorStore.accept(splitDocuments);
+
+        logger.info("finish vector load");
     }
 }
