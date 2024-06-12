@@ -5,10 +5,7 @@
 - spring boot
 - spring ai
 - ollama(using aya for the model)
-- postgres@14
-- pgvector
-- spring ai transformer(*)
-  - since ollama embed model and pgvector's dimension size not woking properly at of now...
+- neo4j 5.20
 
 ## how to use
 ### run application
